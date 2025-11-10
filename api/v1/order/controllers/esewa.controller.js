@@ -11,7 +11,7 @@ export const esewaController = {
             const data = await esewaService.create({ orderId: orderId })
 
 
-            res.render("order", { amount: data.amount, uid: data.uid, total_amount: data.total_amount, signature: data.signature, id: orderId });
+            res.render("esewaOrder", { amount: data.amount, uid: data.uid, total_amount: data.total_amount, signature: data.signature, id: orderId });
 
         } catch (error) {
             next(error);
