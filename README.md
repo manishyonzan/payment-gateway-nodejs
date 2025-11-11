@@ -36,6 +36,7 @@ PORT=5000
 MONGO_URI=mongodb://localhost:27017/chatapp
 ESEWASECRET=secretkey
 MONGOURI=mongodb://127.0.0.1:27017/payment
+BASEURL=your base website url
 
 Running the Server
 # Development

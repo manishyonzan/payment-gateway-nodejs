@@ -10,37 +10,37 @@ const khaltiService = {
 
             if (order.payment_state == "paid") throw new AppError("Already paid");
 
-            // const formdata = {
-            //     "return_url": `http://localhost:3000/api/v1/order/khalti/success/${orderId}`,
-            //     "website_url": "https://localhost:3000",
-            //     "amount": createPayment.amount_paid * 100, //for paisa
-            //     "purchase_order_id": order._id,
-            //     "purchase_order_name": "test",
-            // };
-            // const headers = {
-            //     Authorization: `key ${process.env.KHALTI_SECRET_KEY}`,
-            //     "Content-Type": "application/json"
+            const formdata = {
+                "return_url": `${process.env.BASEURL}/api/v1/order/khalti/success/${orderId}`,
+                "website_url": `${process.env.BASEURL}`,
+                "amount": createPayment.amount_paid * 100, //for paisa
+                "purchase_order_id": order._id,
+                "purchase_order_name": "test",
+            };
+            const headers = {
+                Authorization: `Key ${process.env.KHALTI_SECRET_KEY}`,
+                "Content-Type": "application/json"
 
 
-            // };
+            };
 
-            // let khaltiInitiataUrl = "https://dev.khalti.com/api/v2/epayment/initiate/"
-            // const khaltiResponse = await axios.post(khaltiInitiataUrl,
-            //     formdata,
-            //     {
-            //         headers
+            let khaltiInitiataUrl = "https://dev.khalti.com/api/v2/epayment/initiate/"
+            const khaltiResponse = await axios.post(khaltiInitiataUrl,
+                formdata,
+                {
+                    headers
 
-            //     }
-            // );
-
-            const khaltiResponse = {
-                data: {
-                    "pidx": "bZQLD9wRVWo4CdESSfuSsB",
-                    "payment_url": "https://test-pay.khalti.com/?pidx=bZQLD9wRVWo4CdESSfuSsB",
-                    "expires_at": "2023-05-25T16:26:16.471649+05:45",
-                    "expires_in": 1800
                 }
-            }
+            );
+
+            // const khaltiResponse = {
+            //     data: {
+            //         "pidx": "bZQLD9wRVWo4CdESSfuSsB",
+            //         "payment_url": "https://test-pay.khalti.com/?pidx=bZQLD9wRVWo4CdESSfuSsB",
+            //         "expires_at": "2023-05-25T16:26:16.471649+05:45",
+            //         "expires_in": 1800
+            //     }
+            // }
 
 
 
@@ -76,28 +76,28 @@ const khaltiService = {
 
             if (order.payment_state == "paid") throw new AppError("Already paid");
 
-            // const khaltiLookUpUrl = "https://dev.khalti.com/api/v2/epayment/lookup/";
-            // const headers = {
-            //     Authorization: `key ${process.env.KHALTI_SECRET_KEY}`,
-            //     "Content-Type": "application/json"
-            // };
+            const khaltiLookUpUrl = "https://dev.khalti.com/api/v2/epayment/lookup/";
+            const headers = {
+                Authorization: `Key ${process.env.KHALTI_SECRET_KEY}`,
+                "Content-Type": "application/json"
+            };
 
-            // const khaltiLookUpResponse = await axios.post(khaltiLookUpUrl,
-            //     {
-            //         "pidx": order.latest_payment_id
-            //     },
-            //     {
-            //         headers
-            //     }
-            // )
-
-            const khaltiLookUpResponse = {
-                data: {
-                    status: "Completed",
-                    total_amount: 20 * 100
-
+            const khaltiLookUpResponse = await axios.post(khaltiLookUpUrl,
+                {
+                    "pidx": order.latest_payment_id
+                },
+                {
+                    headers
                 }
-            }
+            )
+
+            // const khaltiLookUpResponse = {
+            //     data: {
+            //         status: "Completed",
+            //         total_amount: 20 * 100
+
+            //     }
+            // }
 
             switch (khaltiLookUpResponse.data.status) {
                 case "Completed":
