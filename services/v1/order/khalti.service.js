@@ -10,28 +10,39 @@ const khaltiService = {
 
             if (order.payment_state == "paid") throw new AppError("Already paid");
 
-            const formdata = {
-                "return_url": `http://localhost:3000/api/v1/order/khalti/success/${orderId}`,
-                "website_url": "https://localhost:3000",
-                "amount": createPayment.amount_paid * 100, //for paisa
-                "purchase_order_id": order._id,
-                "purchase_order_name": "test",
-            };
-            const headers = {
-                Authorization: `key ${process.env.KHALTI_SECRET_KEY}`,
-                "Content-Type": "application/json"
+            // const formdata = {
+            //     "return_url": `http://localhost:3000/api/v1/order/khalti/success/${orderId}`,
+            //     "website_url": "https://localhost:3000",
+            //     "amount": createPayment.amount_paid * 100, //for paisa
+            //     "purchase_order_id": order._id,
+            //     "purchase_order_name": "test",
+            // };
+            // const headers = {
+            //     Authorization: `key ${process.env.KHALTI_SECRET_KEY}`,
+            //     "Content-Type": "application/json"
 
 
-            };
+            // };
 
-            let khaltiInitiataUrl = "https://dev.khalti.com/api/v2/epayment/initiate/"
-            const khaltiResponse = await axios.post(khaltiInitiataUrl,
-                formdata,
-                {
-                    headers
+            // let khaltiInitiataUrl = "https://dev.khalti.com/api/v2/epayment/initiate/"
+            // const khaltiResponse = await axios.post(khaltiInitiataUrl,
+            //     formdata,
+            //     {
+            //         headers
 
+            //     }
+            // );
+
+            const khaltiResponse = {
+                data: {
+                    "pidx": "bZQLD9wRVWo4CdESSfuSsB",
+                    "payment_url": "https://test-pay.khalti.com/?pidx=bZQLD9wRVWo4CdESSfuSsB",
+                    "expires_at": "2023-05-25T16:26:16.471649+05:45",
+                    "expires_in": 1800
                 }
-            );
+            }
+
+
 
             const createPayment = await paymentRepository.create({
                 amount_paid: order.total_amount,
@@ -62,35 +73,48 @@ const khaltiService = {
 
             const order = await orderService.get({ order_id: orderId });
 
-            const khaltiLookUpUrl = "https://dev.khalti.com/api/v2/epayment/lookup/";
-            const headers = {
-                Authorization: `key ${process.env.KHALTI_SECRET_KEY}`,
-                "Content-Type": "application/json"
-            };
 
-            const khaltiLookUpResponse = await axios.post(khaltiLookUpUrl,
-                {
-                    "pidx": order.latest_payment_id
-                },
-                {
-                    headers
+            if (order.payment_state == "paid") throw new AppError("Already paid");
+
+            // const khaltiLookUpUrl = "https://dev.khalti.com/api/v2/epayment/lookup/";
+            // const headers = {
+            //     Authorization: `key ${process.env.KHALTI_SECRET_KEY}`,
+            //     "Content-Type": "application/json"
+            // };
+
+            // const khaltiLookUpResponse = await axios.post(khaltiLookUpUrl,
+            //     {
+            //         "pidx": order.latest_payment_id
+            //     },
+            //     {
+            //         headers
+            //     }
+            // )
+
+            const khaltiLookUpResponse = {
+                data: {
+                    status: "Completed",
+                    total_amount: 20 * 100
+
                 }
-            )
+            }
 
             switch (khaltiLookUpResponse.data.status) {
                 case "Completed":
                     try {
                         const orderUpdate = await orderService.update({ latest_payment_gateway: "khalti", latest_payment_id: order.latest_payment_id, order_id: orderId, payment_state: "paid" });
+
+                        console.log("it is running")
                         const paymentStateChange = await paymentRepository.onPaymentComplete({ paymentId: order.latest_payment_id, status: "success" })
                         return { transaction_complete: true, amount_paid: paymentStateChange.amount_paid };
                     } catch (error) {
                         throw error;
                     }
                 case "Pending":
-                    return { transaction_complete: false, amount_paid: khaltiLookUpResponse.data.total_amount }
+                    return { transaction_complete: false, amount_paid: khaltiLookUpResponse.data.total_amount / 100 }
                 // and others
                 default:
-                    return { transaction_complete: false, amount_paid: khaltiLookUpResponse.data.total_amount }
+                    return { transaction_complete: false, amount_paid: khaltiLookUpResponse.data.total_amount / 100 }
 
             }
         } catch (error) {

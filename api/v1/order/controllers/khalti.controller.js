@@ -18,10 +18,10 @@ export const khaltiController = {
             const response = await khaltiService.verifySuccess({ orderId });
 
             if (response.transaction_complete) {
-                res.render("paymentSuccess", { latest_payment_gateway: "esewa", amount: response.amount_paid })
+                return res.render("paymentSuccess", { latest_payment_gateway: "khalti", amount: response.amount_paid })
             }
 
-            res.render("paymentFailed", { latest_payment_gateway: "esewa", amount: response.amount_paid })
+            return res.render("paymentFailed", { latest_payment_gateway: "khalti", amount: response.amount_paid })
 
         } catch (error) {
             next(error);

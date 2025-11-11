@@ -1,5 +1,5 @@
 import express from "express";
-import { khaltiController } from "../controllers/khalti.controller";
+import { khaltiController } from "../controllers/khalti.controller.js";
 
 export const khaltiRouter = () => {
     

@@ -33,7 +33,8 @@ const orderRepository = {
         {
             order_id,
             latest_payment_gateway,
-            latest_payment_id
+            latest_payment_id,
+            payment_state
         }
     ) {
         try {
@@ -42,7 +43,8 @@ const orderRepository = {
 
 
 
-            const data = await order.findByIdAndUpdate(id, { latest_payment_gateway, latest_payment_id }, { new: true });
+            const data = await order.findByIdAndUpdate(id, { latest_payment_gateway, latest_payment_id, payment_state }, { new: true });
+            console.log(data)
             return data;
         } catch (error) {
             throw error;
