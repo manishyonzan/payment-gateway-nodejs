@@ -102,11 +102,17 @@ const khaltiService = {
             switch (khaltiLookUpResponse.data.status) {
                 case "Completed":
                     try {
-                        const orderUpdate = await orderService.update({ latest_payment_gateway: "khalti", latest_payment_id: order.latest_payment_id, order_id: orderId, payment_state: "paid" });
+                        // const orderUpdate = await orderService.update({ latest_payment_gateway: "khalti", latest_payment_id: order.latest_payment_id, order_id: orderId, payment_state: "paid" });
 
-                        console.log("it is running")
-                        const paymentStateChange = await paymentRepository.onPaymentComplete({ paymentId: order.latest_payment_id, status: "success" })
+                        // console.log("it is running")
+                        // const paymentStateChange = await paymentRepository.onPaymentComplete({ paymentId: order.latest_payment_id, status: "success" })
+
+                        const [orderUpdate, paymentStateChange] = await Promise.all([
+                            orderService.update({ latest_payment_gateway: "khalti", latest_payment_id: order.latest_payment_id, order_id: orderId, payment_state: "paid" }),
+                            paymentRepository.onPaymentComplete({ paymentId: order.latest_payment_id, status: "success" })
+                        ]);
                         return { transaction_complete: true, amount_paid: paymentStateChange.amount_paid };
+
                     } catch (error) {
                         throw error;
                     }
