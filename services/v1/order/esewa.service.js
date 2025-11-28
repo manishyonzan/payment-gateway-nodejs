@@ -9,25 +9,38 @@ const esewaService = {
         // const order = await OrderService.findById(orderId)
         const order = await orderService.get({ order_id: orderId });
 
-        if (order.payment_state =="paid") throw new AppError("Already paid");
+        if (order.payment_state == "paid") throw new AppError("Already paid");
         const uid = uuidv4();
         const message = `total_amount=${order.total_amount},transaction_uuid=${uid},product_code=EPAYTEST`
         const hash = CryptoJS.HmacSHA256(message, process.env.ESEWASECRET);
         const hashInBase64 = CryptoJS.enc.Base64.stringify(hash);
 
 
-        const createPayment = await paymentRepository.create({
-            amount_paid: order.total_amount,
-            gateway: "esewa",
-            metadata: null,
-            order_id: order._id,
-            paid_at: new Date(),
-            status: "initiated",
-            transaction_uuid: uid,
-        });
+        const [createPayment, updatePaymentIdonOrder] = await Promise.all([
+            paymentRepository.create({
+                amount_paid: order.total_amount,
+                gateway: "esewa",
+                metadata: null,
+                order_id: order._id,
+                paid_at: new Date(),
+                status: "initiated",
+                transaction_uuid: uid,
+            }),
+            orderService.update({ latest_payment_gateway: "esewa", latest_payment_id: uid, order_id: orderId, payment_state: "unpaid" })
+        ]);
+
+        // const createPayment = await paymentRepository.create({
+        //         amount_paid: order.total_amount,
+        //         gateway: "esewa",
+        //         metadata: null,
+        //         order_id: order._id,
+        //         paid_at: new Date(),
+        //         status: "initiated",
+        //         transaction_uuid: uid,
+        //     });
 
 
-        const updatePaymentIdonOrder = await orderService.update({ latest_payment_gateway: "esewa", latest_payment_id: uid, order_id: orderId, payment_state: "unpaid" });
+        // const updatePaymentIdonOrder = await orderService.update({ latest_payment_gateway: "esewa", latest_payment_id: uid, order_id: orderId, payment_state: "unpaid" });
 
 
         return { amount: createPayment.amount_paid, uid: uid, total_amount: createPayment.amount_paid, signature: hashInBase64 }
